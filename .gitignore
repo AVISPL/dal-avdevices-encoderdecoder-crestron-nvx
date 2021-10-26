@@ -1,0 +1,10 @@
+.idea/
+target/classes/
+target/maven-archiver/
+target/maven-status/
+.classpath
+.project
+*.prefs
+/Device.json
+*.iml
+/target/generated-sources/
