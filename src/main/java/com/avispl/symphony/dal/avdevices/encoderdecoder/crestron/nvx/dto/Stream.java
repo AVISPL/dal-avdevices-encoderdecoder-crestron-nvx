@@ -4,8 +4,8 @@
 
 package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.dto;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Stream
@@ -16,17 +16,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Stream {
-	@JsonAlias("UUID")
+	@JsonProperty("UUID")
 	private String uuid;
-	@JsonAlias("StreamLocation")
+	@JsonProperty("StreamLocation")
 	private String streamLocation;
-	@JsonAlias("MulticastAddress")
+	@JsonProperty("MulticastAddress")
 	private String multicastAddress;
-	@JsonAlias("Status")
+	@JsonProperty("Status")
 	private String status;
-	@JsonAlias("HorizontalResolution")
+	@JsonProperty("HorizontalResolution")
 	private String horizontalResolution;
-	@JsonAlias("VerticalResolution")
+	@JsonProperty("VerticalResolution")
 	private String verticalResolution;
 
 	/**

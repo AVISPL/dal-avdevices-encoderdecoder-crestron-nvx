@@ -31,7 +31,7 @@ public class CrestronConstant {
 	public static final String AUTHORIZED = "Authorized";
 	public static final String UNAUTHORIZED = "Unauthorized";
 	public static final String NEXT_LINE = "\n";
-	public static final String TRUE = "True";
+	public static final String TRUE = "true";
 	public static final String NETWORK_GROUP = "Network#";
 	public static final String AUTO_UPDATE_GROUP = "AutoUpdate#";
 	public static final String INPUT_GROUP = "Input#";
@@ -48,7 +48,7 @@ public class CrestronConstant {
 	public static final String DEVICE_OPERATION_API_GROUP = "DeviceOperationApi";
 	public static final String DEVICE_SPECIFIC_API_GROUP = "DeviceSpecificApi";
 	public static final String DEVICE_XIO_CLOUD_API_GROUP = "DeviceXioCloudApi";
-	public static final String DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP = "DeviceXioCloudApi";
+	public static final String DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP = "AudioVideoInputOutputApi";
 	public static final String HASH = "#";
 	public static final String ON = "On";
 	public static final String OFF = "Off";
@@ -57,6 +57,7 @@ public class CrestronConstant {
 	public static final String IPID = "IPID";
 	public static final String UUID = "UUID";
 	public static final String UNIQUE_ID = "UniqueId";
+	public static final String ADDRESS_SCHEMA="AddressSchema";
 	public static final String NTP = "Ntp";
 	public static final String SERVERS = "Servers";
 	public static final String SERVERS_CURRENT_KEY_LIST = "ServersCurrentKeyList";
@@ -73,4 +74,7 @@ public class CrestronConstant {
 	public static final String EDID = "Edid";
 	public static final String ADAPTERS = "Adapters";
 	public static final String AUTO_UPDATE_SCHEDULE = "AutoUpdateSchedule";
+	public static final String TRANSMITTER = "Transmitter";
+	public static final String RECEIVER = "Receiver";
+	public static final String UNSUPPORT_RESTAPI = "UNSUPPORTED PROPERTY, CHECK REST API!!!";
 }
