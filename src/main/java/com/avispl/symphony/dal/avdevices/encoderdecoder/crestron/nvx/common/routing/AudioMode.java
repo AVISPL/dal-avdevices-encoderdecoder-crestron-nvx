@@ -7,7 +7,7 @@ package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.rou
 import java.util.Arrays;
 
 /**
- * AudioMode
+ * AudioMode represents supported mode for audio
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/29/2024
@@ -16,7 +16,6 @@ import java.util.Arrays;
 public enum AudioMode {
 	INSERT("Insert", "Insert"),
 	EXTRACT("Extract", "Extract"),
-
 	;
 
 	private String name;
@@ -50,7 +49,7 @@ public enum AudioMode {
 	 */
 	public static AudioMode getEnumByValue(String value) {
 		return Arrays.stream(values())
-				.filter(item -> item.getName().equals(value))
+				.filter(item -> item.getValue().equals(value))
 				.findFirst()
 				.orElse(null);
 	}

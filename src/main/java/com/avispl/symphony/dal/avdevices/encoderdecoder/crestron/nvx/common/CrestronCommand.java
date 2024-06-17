@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
 
 /**
- * CrestronCommand
+ * CrestronCommand represents monitoring commands sent to a Crestron device.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/8/2024
@@ -22,6 +22,7 @@ public enum CrestronCommand {
 	AUTO_UPDATE(CrestronConstant.AUTO_UPDATE_GROUP, CrestronUri.AUTO_UPDATE_API, CrestronConstant.EMPTY),
 	DATE_TIME(CrestronConstant.DATE_TIME_GROUP, CrestronUri.SYSTEM_CLOCK_API, CrestronConstant.EMPTY),
 	DISCOVERY_CONFIG(CrestronConstant.DISCOVERY_CONFIG_GROUP, CrestronUri.DISCOVERY_API, CrestronConstant.EMPTY),
+	LOCALIZATION(CrestronConstant.LOCALIZATION_GROUP,CrestronUri.LOCALIZATION_API, CrestronConstant.EMPTY),
 	STREAM_RECEIVE(CrestronConstant.STREAM_RECEIVE_GROUP, CrestronUri.STREAM_RECEIVE_API, CrestronConstant.RECEIVER),
 	STREAM_TRANSMIT(CrestronConstant.STREAM_TRANSMIT_GROUP, CrestronUri.STREAM_TRANSMIT_API, CrestronConstant.TRANSMITTER),
 	STREAM_SUBSCRIPTION(CrestronConstant.STREAM_SUBSCRIPTION_GROUP, CrestronUri.STREAM_SUBSCRIPTION_API, CrestronConstant.RECEIVER),

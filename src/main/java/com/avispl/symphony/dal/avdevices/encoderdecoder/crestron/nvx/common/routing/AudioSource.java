@@ -7,7 +7,7 @@ package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.rou
 import java.util.Arrays;
 
 /**
- * AudioSource
+ * AudioSource represents supported source for audio
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/29/2024
@@ -15,6 +15,7 @@ import java.util.Arrays;
  */
 public enum AudioSource {
 	AUDIO_FOLLOWS_VIDEO("Audio Follows Video", "AudioFollowsVideo"),
+	NO_AUDIO_SELECTED("No Audio Selected", "NoAudioSelected"),
 	INPUT_1("Input 1", "Input1"),
 	INPUT_2("Input 2", "Input2"),
 	ANALOG_AUDIO("Analog Audio", "AnalogAudio"),
@@ -53,6 +54,16 @@ public enum AudioSource {
 	public static AudioSource getEnumByValue(String value) {
 		return Arrays.stream(values())
 				.filter(item -> item.getValue().equals(value))
+				.findFirst()
+				.orElse(null);
+	}
+
+	/**
+	 * Get AudioSource value by given name
+	 */
+	public static AudioSource getEnumByName(String name) {
+		return Arrays.stream(values())
+				.filter(item -> item.getName().equals(name))
 				.findFirst()
 				.orElse(null);
 	}

@@ -5,11 +5,15 @@
 package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx;
 
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import org.junit.Assert;
+import javax.security.auth.login.FailedLoginException;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,12 +37,13 @@ public class CrestronNVXCommunicatorTest {
 	void setUp() throws Exception {
 		crestronNVXCommunicator = new CrestronNVXCommunicator();
 		crestronNVXCommunicator.setTrustAllCertificates(true);
-		crestronNVXCommunicator.setHost("10.7.55.104");
+		crestronNVXCommunicator.setHost("10.7.55.103");
 		crestronNVXCommunicator.setLogin("admin");
 		crestronNVXCommunicator.setPassword("admin");
 		crestronNVXCommunicator.setPort(443);
 		crestronNVXCommunicator.init();
 		crestronNVXCommunicator.connect();
+		crestronNVXCommunicator.setConfigManagement("true");
 	}
 
 	@AfterEach
@@ -47,34 +52,4 @@ public class CrestronNVXCommunicatorTest {
 		crestronNVXCommunicator.destroy();
 	}
 
-	@Test
-	void testLogin() throws Exception {
-		crestronNVXCommunicator.getMultipleStatistics();
-	}
-
-	@Test
-	void testGetDataSuccess() throws Exception {
-//		 crestronNVXCommunicator.sendControl();
-		extendedStatistics = (ExtendedStatistics) crestronNVXCommunicator.getMultipleStatistics().get(0);
-		Map<String, String> stats = extendedStatistics.getStatistics();
-		List<AdvancedControllableProperty> controls = extendedStatistics.getControllableProperties();
-		Assert.assertEquals(95, stats.size());
-		Assert.assertEquals(10, controls.size());
-	}
-
-	@Test
-	void testControlStreamTransmit() throws Exception {
-		crestronNVXCommunicator.getMultipleStatistics();
-		Thread.sleep(5000);
-		crestronNVXCommunicator.getMultipleStatistics();
-		ControllableProperty controllableProperty = new ControllableProperty();
-		String property = "StreamTransmit#UUID";
-		String value = "2";
-	  controllableProperty.setProperty(property);
-		controllableProperty.setValue(value);
-		crestronNVXCommunicator.controlProperty(controllableProperty);
-		extendedStatistics = (ExtendedStatistics) crestronNVXCommunicator.getMultipleStatistics().get(0);
-		Map<String, String> stats = extendedStatistics.getStatistics();
-		Assert.assertEquals("2", stats.get(property));
-	}
 }

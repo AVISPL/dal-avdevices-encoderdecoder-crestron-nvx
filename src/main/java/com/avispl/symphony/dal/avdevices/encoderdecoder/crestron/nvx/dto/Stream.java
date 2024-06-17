@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Stream
+ * Stream represents stream object retrieve from Crestron device.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/5/2024

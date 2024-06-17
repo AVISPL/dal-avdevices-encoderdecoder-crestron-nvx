@@ -7,7 +7,7 @@ package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
 import java.util.Arrays;
 
 /**
- * DeviceModel
+ * DeviceModel represents supported model of Crestron adapter.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/30/2024
@@ -35,6 +35,11 @@ public enum DeviceModel {
 		return name;
 	}
 
+	/**
+	 * Get model of device by name
+	 *
+	 * @param name of model
+	 */
 	public static DeviceModel getDeviceModelByName(final String name) {
 		return Arrays.stream(values())
 				.filter(item -> item.getName().equals(name))

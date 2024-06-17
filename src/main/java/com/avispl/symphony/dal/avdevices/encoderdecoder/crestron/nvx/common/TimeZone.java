@@ -7,7 +7,7 @@ package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
 import java.util.Arrays;
 
 /**
- * Enum representing different types of time zone
+ * TimeZone represents all supported timezones of Crestron device.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/5/2024
@@ -198,6 +198,16 @@ public enum TimeZone {
 	public static TimeZone getEnumByValue(String time) {
 		return Arrays.stream(values())
 				.filter(item -> item.getValue().equals(time))
+				.findFirst()
+				.orElse(null);
+	}
+
+	/**
+	 * Get specific timezone by given name
+	 */
+	public static TimeZone getEnumByName(String name) {
+		return Arrays.stream(values())
+				.filter(item -> item.getName().equals(name))
 				.findFirst()
 				.orElse(null);
 	}

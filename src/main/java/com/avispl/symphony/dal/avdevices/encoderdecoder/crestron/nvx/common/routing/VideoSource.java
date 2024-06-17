@@ -7,7 +7,7 @@ package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.rou
 import java.util.Arrays;
 
 /**
- * VideoSource
+ * VideoSource represents source for video
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/29/2024
@@ -49,9 +49,19 @@ public enum VideoSource {
 	/**
 	 * Get specific VideoSource value by given value
 	 */
-	public static VideoSource getEnumByName(String value) {
+	public static VideoSource getEnumByValue(String value) {
 		return Arrays.stream(values())
 				.filter(item -> item.getValue().equals(value))
+				.findFirst()
+				.orElse(null);
+	}
+
+	/**
+	 * Get VideoSource value by given name
+	 */
+	public static VideoSource getEnumByName(String name) {
+		return Arrays.stream(values())
+				.filter(item -> item.getName().equals(name))
 				.findFirst()
 				.orElse(null);
 	}

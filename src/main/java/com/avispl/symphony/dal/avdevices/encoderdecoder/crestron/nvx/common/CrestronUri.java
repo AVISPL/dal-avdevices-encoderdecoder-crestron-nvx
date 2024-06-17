@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
 
 /**
- * CrestronUri
+ * CrestronUri represents uri endpoints to make API request to Crestron device.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/5/2024
@@ -23,6 +23,7 @@ public class CrestronUri {
 	public static final String AUTO_UPDATE_API = "Device/AutoUpdateMaster";
 	public static final String SYSTEM_CLOCK_API = "Device/SystemClock";
 	public static final String DISCOVERY_API = "Device/DiscoveryConfig";
+	public static final String LOCALIZATION_API = "Device/Localization";
 
 	public static final String STREAM_RECEIVE_API = "Device/StreamReceive";
 	public static final String STREAM_TRANSMIT_API = "Device/StreamTransmit";
