@@ -2,28 +2,26 @@
  *  Copyright (c) 2024 AVI-SPL, Inc. All Rights Reserved.
  */
 
-package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.routing;
+package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
 
 import java.util.Arrays;
 
 /**
- * VideoSource represents source for video
+ * AudioMode represents supported mode for audio
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/29/2024
  * @since 1.0.0
  */
-public enum VideoSource {
-	INPUT_1("Input 1", "Input1"),
-	INPUT_2("Input 2", "Input2"),
-	NONE("None", "None"),
-	STREAM("Stream", "Stream"),
+public enum AudioMode {
+	INSERT("Insert", "Insert"),
+	EXTRACT("Extract", "Extract"),
 	;
 
 	private String name;
 	private String value;
 
-	VideoSource(String name, String value) {
+	AudioMode(String name, String value) {
 		this.name = name;
 		this.value = value;
 	}
@@ -47,21 +45,11 @@ public enum VideoSource {
 	}
 
 	/**
-	 * Get specific VideoSource value by given value
+	 * Get specific AudioMode value by given value
 	 */
-	public static VideoSource getEnumByValue(String value) {
+	public static AudioMode getEnumByValue(String value) {
 		return Arrays.stream(values())
 				.filter(item -> item.getValue().equals(value))
-				.findFirst()
-				.orElse(null);
-	}
-
-	/**
-	 * Get VideoSource value by given name
-	 */
-	public static VideoSource getEnumByName(String name) {
-		return Arrays.stream(values())
-				.filter(item -> item.getName().equals(name))
 				.findFirst()
 				.orElse(null);
 	}

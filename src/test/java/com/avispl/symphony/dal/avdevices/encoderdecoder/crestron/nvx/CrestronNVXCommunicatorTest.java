@@ -38,8 +38,8 @@ public class CrestronNVXCommunicatorTest {
 		crestronNVXCommunicator = new CrestronNVXCommunicator();
 		crestronNVXCommunicator.setTrustAllCertificates(true);
 		crestronNVXCommunicator.setHost("10.7.55.103");
-		crestronNVXCommunicator.setLogin("admin");
-		crestronNVXCommunicator.setPassword("admin");
+		crestronNVXCommunicator.setLogin("");
+		crestronNVXCommunicator.setPassword("");
 		crestronNVXCommunicator.setPort(443);
 		crestronNVXCommunicator.init();
 		crestronNVXCommunicator.connect();

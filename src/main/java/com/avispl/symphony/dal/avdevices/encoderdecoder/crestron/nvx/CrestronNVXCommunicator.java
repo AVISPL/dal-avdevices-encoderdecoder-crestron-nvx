@@ -68,7 +68,7 @@ import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.Cres
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.DeviceModel;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.PingMode;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.TimeZone;
-import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.routing.AudioMode;
+import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.AudioMode;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.dto.Streams;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
 import com.avispl.symphony.dal.util.StringUtils;
@@ -1168,7 +1168,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		}
 		switch (property) {
 			case OUTPUT_NO:
-				int initialValue = Integer.parseInt((number));
+				int initialValue = Integer.parseInt(number);
 				String[] values = IntStream.range(0, outputJson.size()).mapToObj(i -> String.valueOf(i + 1)).toArray(String[]::new);
 				addAdvancedControlProperties(advancedControllableProperties, controlStats, createDropdown(groupName, values, String.valueOf(initialValue)), String.valueOf(initialValue));
 				break;
