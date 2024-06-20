@@ -12,7 +12,7 @@ package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
  * @since 1.0.0
  */
 public enum CrestronPropertyList {
-	// General group
+
 	MODEL("Model", CrestronConstant.EMPTY, false ,CrestronConstant.DEVICE_INFO_API_GROUP, "Model", CrestronConstant.EMPTY),
 	FIRMWARE_VERSION("FirmwareVersion", CrestronConstant.EMPTY, false ,CrestronConstant.DEVICE_INFO_API_GROUP,"DeviceVersion", CrestronConstant.EMPTY),
 	FIRMWARE_BUILD_DATE("FirmwareBuildDate", CrestronConstant.EMPTY, false ,CrestronConstant.DEVICE_INFO_API_GROUP,  "BuildDate", CrestronConstant.EMPTY),
@@ -27,7 +27,7 @@ public enum CrestronPropertyList {
 	DEVICE_READY("DeviceReady", CrestronConstant.EMPTY, false ,CrestronConstant.DEVICE_SPECIFIC_API_GROUP,  "DeviceReady", CrestronConstant.EMPTY),
 	FRONT_PANEL_LOCKOUT("FrontPanelLockout",CrestronConstant.EMPTY, false ,CrestronConstant.DEVICE_SPECIFIC_API_GROUP,  "IsFrontPanelLockoutEnabled", CrestronConstant.EMPTY),
 	FIRMWARE_UPGRADED_STATUS("FirmwareUpgradedStatus", CrestronConstant.EMPTY, false ,CrestronConstant.DEVICE_OPERATION_API_GROUP, "UpgradeStatus", CrestronConstant.EMPTY),
-	// Network group
+
 	ADDRESS_SCHEMA("AddressSchema",CrestronConstant.NETWORK_GROUP, true,CrestronConstant.NETWORK_GROUP, "AddressSchema", CrestronConstant.EMPTY),
 	HOST_NAME("HostName",CrestronConstant.NETWORK_GROUP, false,CrestronConstant.NETWORK_GROUP, "HostName", CrestronConstant.EMPTY),
 	DOMAIN_NAME("DomainName",CrestronConstant.NETWORK_GROUP, false,CrestronConstant.NETWORK_GROUP, "DomainName", CrestronConstant.EMPTY),
@@ -41,7 +41,7 @@ public enum CrestronPropertyList {
 	MAC_ADDRESS("MacAddress",CrestronConstant.NETWORK_GROUP, false,CrestronConstant.NETWORK_GROUP, "MacAddress", CrestronConstant.EMPTY),
 	IGMP_SUPPORT("IGMPSupport",CrestronConstant.NETWORK_GROUP, true,CrestronConstant.NETWORK_GROUP, "IgmpVersion", CrestronConstant.EMPTY),
 	CLOUD_CONFIGURATION_SERVICE_CONNECTION("CloudConfigurationServiceConnection",CrestronConstant.NETWORK_GROUP, true, CrestronConstant.DEVICE_XIO_CLOUD_API_GROUP,"IsEnabled", CrestronConstant.EMPTY),
-	// Control System
+
 	ENCRYPT_CONNECTION("EncryptConnection",CrestronConstant.CONTROL_SYSTEM_GROUP, false,CrestronConstant.CONTROL_SYSTEM_GROUP, "EncryptConnection", CrestronConstant.EMPTY),
 	IP_ID("IPID",CrestronConstant.CONTROL_SYSTEM_GROUP, true,CrestronConstant.CONTROL_SYSTEM_GROUP, "IpId", CrestronConstant.EMPTY),
 	ROOM_ID("RoomID",CrestronConstant.CONTROL_SYSTEM_GROUP, false,CrestronConstant.CONTROL_SYSTEM_GROUP, "ProgramInstanceId", CrestronConstant.EMPTY),
@@ -50,13 +50,13 @@ public enum CrestronPropertyList {
 	SERVER_PORT("ServerPort",CrestronConstant.CONTROL_SYSTEM_GROUP, false,CrestronConstant.CONTROL_SYSTEM_GROUP, "Port", CrestronConstant.EMPTY),
 	CONNECTION("Connection",CrestronConstant.CONTROL_SYSTEM_GROUP, false,CrestronConstant.CONTROL_SYSTEM_GROUP, "ConnectionType", CrestronConstant.EMPTY),
 	STATUS("Status",CrestronConstant.CONTROL_SYSTEM_GROUP, false,CrestronConstant.CONTROL_SYSTEM_GROUP, "Status", CrestronConstant.EMPTY),
-	// Input
+
 	INPUT_NO("No",CrestronConstant.INPUT_GROUP, true ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "Uuid", CrestronConstant.EMPTY),
 	INPUT_NAME("Name",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "Name", CrestronConstant.EMPTY),
 	SYNC_DETECTED("SyncDetected",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,"IsSyncDetected", CrestronConstant.EMPTY),
 	HORIZONTAL_RESOLUTION("HorizontalResolution",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "HorizontalResolution", CrestronConstant.EMPTY),
 	VERTICAL_RESOLUTION("VerticalResolution",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "VerticalResolution", CrestronConstant.EMPTY),
-	INPUT_SOURCE_HDCP("HDCPState",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "HdcpState", CrestronConstant.EMPTY),
+	INPUT_SOURCE_HDCP("SourceHDCP",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "HdcpState", CrestronConstant.EMPTY),
 	SOURCE_CONTENT_STREAM_TYPE("ContentStreamType",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "ContentStreamType", CrestronConstant.EMPTY), // unknown,
 	INTERLACED("Interlaced",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "IsInterlacedDetected", CrestronConstant.EMPTY),
 	INPUT_ASPECT_RATIO("AspectRatio",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "AspectRatio", CrestronConstant.EMPTY),
@@ -64,7 +64,7 @@ public enum CrestronPropertyList {
 	AUDIO_CHANNELS("AudioChannel",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "Channels", CrestronConstant.EMPTY),
 	EDID("EDID",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "CurrentEdid", CrestronConstant.EMPTY),
 	HDCP_RECEIVER_CAPABILITY("HdcpReceiverCapability",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "HdcpReceiverCapability", CrestronConstant.EMPTY),
-	// Output
+
 	OUTPUT_NO("No",CrestronConstant.OUTPUT_GROUP, false,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,  "Uuid", CrestronConstant.EMPTY),
 	OUTPUT_NAME("Name",CrestronConstant.OUTPUT_GROUP, false,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,  "Name", CrestronConstant.EMPTY),
 	SINK_CONNECTED("SinkConnected",CrestronConstant.OUTPUT_GROUP, false,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,  "IsSinkConnected", CrestronConstant.EMPTY),
@@ -75,7 +75,6 @@ public enum CrestronPropertyList {
 	OUTPUT_ASPECT_RATIO("AspectRatio",CrestronConstant.OUTPUT_GROUP, false,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,  "AspectRatio", CrestronConstant.EMPTY),
 	ANALOG_AUDIO_VOLUME("AnalogAudioVolume",CrestronConstant.OUTPUT_GROUP, true,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,  "Volume", CrestronConstant.EMPTY),
 
-	// Auto update
 	AUTO_UPDATE("AutoUpdate",CrestronConstant.AUTO_UPDATE_GROUP, true,CrestronConstant.AUTO_UPDATE_GROUP, "IsEnabled", CrestronConstant.EMPTY),
 	CUSTOM_URL("CustomUrl",CrestronConstant.AUTO_UPDATE_GROUP, false,CrestronConstant.AUTO_UPDATE_GROUP, "IsCustomUrlEnabled", CrestronConstant.EMPTY),
 	CUSTOM_URL_PATH("CustomUrlPath",CrestronConstant.AUTO_UPDATE_GROUP, false,CrestronConstant.AUTO_UPDATE_GROUP, "ManifestPath", CrestronConstant.EMPTY),
@@ -95,7 +94,7 @@ public enum CrestronPropertyList {
 
 	RECEIVE_UUID("UUID",CrestronConstant.STREAM_RECEIVE_GROUP, false,CrestronConstant.STREAM_RECEIVE_GROUP, "UUID", CrestronConstant.RECEIVER),
 	RECEIVE_DEVICE_NAME("DeviceName",CrestronConstant.STREAM_RECEIVE_GROUP, false,CrestronConstant.LOCALIZATION_GROUP, "Name", CrestronConstant.RECEIVER),
-	RECEIVE_MODE("Mode",CrestronConstant.STREAM_RECEIVE_GROUP, true,CrestronConstant.DEVICE_SPECIFIC_API_GROUP, "TransportMode", CrestronConstant.RECEIVER),
+	RECEIVE_MODE("Mode",CrestronConstant.STREAM_RECEIVE_GROUP, true,CrestronConstant.DEVICE_SPECIFIC_API_GROUP, "DeviceMode", CrestronConstant.RECEIVER),
 	RECEIVE_STREAM_LOCATION("StreamLocation",CrestronConstant.STREAM_RECEIVE_GROUP, false,CrestronConstant.STREAM_RECEIVE_GROUP, "StreamLocation", CrestronConstant.RECEIVER),
 	RECEIVE_MULTICAST_ADDRESS("MulticastAddress",CrestronConstant.STREAM_RECEIVE_GROUP, false,CrestronConstant.STREAM_RECEIVE_GROUP, "MulticastAddress", CrestronConstant.RECEIVER),
 	RECEIVE_RECEIVE_STATUS("Status",CrestronConstant.STREAM_RECEIVE_GROUP, false,CrestronConstant.STREAM_RECEIVE_GROUP, "Status", CrestronConstant.RECEIVER),
@@ -104,7 +103,7 @@ public enum CrestronPropertyList {
 
 	TRANSMIT_UUID("UUID",CrestronConstant.STREAM_TRANSMIT_GROUP, false,CrestronConstant.STREAM_TRANSMIT_GROUP, "UUID", CrestronConstant.TRANSMITTER),
 	TRANSMIT_DEVICE_NAME("DeviceName",CrestronConstant.STREAM_TRANSMIT_GROUP, false,CrestronConstant.LOCALIZATION_GROUP, "Name", CrestronConstant.TRANSMITTER),
-	TRANSMIT_MODE("Mode",CrestronConstant.STREAM_TRANSMIT_GROUP, true,CrestronConstant.DEVICE_SPECIFIC_API_GROUP, "TransportMode", CrestronConstant.TRANSMITTER),
+	TRANSMIT_MODE("Mode",CrestronConstant.STREAM_TRANSMIT_GROUP, true,CrestronConstant.DEVICE_SPECIFIC_API_GROUP, "DeviceMode", CrestronConstant.TRANSMITTER),
 	TRANSMIT_STREAM_LOCATION("StreamLocation",CrestronConstant.STREAM_TRANSMIT_GROUP, false,CrestronConstant.STREAM_TRANSMIT_GROUP, "StreamLocation", CrestronConstant.TRANSMITTER),
 	TRANSMIT_MULTICAST_ADDRESS("MulticastAddress",CrestronConstant.STREAM_TRANSMIT_GROUP, false,CrestronConstant.STREAM_TRANSMIT_GROUP, "MulticastAddress", CrestronConstant.TRANSMITTER),
 	TRANSMIT_RECEIVE_STATUS("Status",CrestronConstant.STREAM_TRANSMIT_GROUP, false,CrestronConstant.STREAM_TRANSMIT_GROUP, "Status", CrestronConstant.TRANSMITTER),

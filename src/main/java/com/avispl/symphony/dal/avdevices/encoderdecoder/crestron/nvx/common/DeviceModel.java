@@ -7,7 +7,7 @@ package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
 import java.util.Arrays;
 
 /**
- * DeviceModel represents supported model of Crestron adapter.
+ * DeviceModel represents supported models of Crestron DM adapter.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/30/2024

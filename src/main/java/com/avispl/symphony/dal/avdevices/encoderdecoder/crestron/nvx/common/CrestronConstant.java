@@ -5,7 +5,7 @@
 package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common;
 
 /**
- * CrestronConstant represents constant used in crestron adapter.
+ * CrestronConstant represents constants used in crestron adapter.
  *
  * @author Kevin / Symphony Dev Team<br>
  * Created on 5/2/2024
@@ -20,6 +20,7 @@ public class CrestronConstant {
 	public static final String COOKIE = "Cookie";
 	public static final String SET_COOKIE = "Set-Cookie";
 	public static final String TRUE = "true";
+	public static final String FALSE = "false";
 	public static final String NETWORK_GROUP = "Network#";
 	public static final String AUTO_UPDATE_GROUP = "AutoUpdate#";
 	public static final String INPUT_GROUP = "Input#";
@@ -61,4 +62,15 @@ public class CrestronConstant {
 	public static final String TRANSMITTER = "Transmitter";
 	public static final String RECEIVER = "Receiver";
 	public static final String UNSUPPORT_RESTAPI = "UNSUPPORTED PROPERTY, CHECK REST API!!!";
+	public static final String DEVICE_MODE = "DeviceMode";
+	public static final String APPLY = "Apply";
+	public static final String MAX_ENTRIES = "MaxEntries";
+	public static final String ACTIONS = "Actions";
+	public static final String RESULTS = "Results";
+	public static final String STATUS_ID = "StatusId";
+	public static final String INPUTS = "Inputs";
+	public static final String PORTS = "Ports";
+	public static final String OUTPUTS = "Outputs";
+	public static final String ADDRESSES = "Addresses";
+	public static final String DNS_SERVERS = "DnsServers";
 }

@@ -37,7 +37,7 @@ public class CrestronNVXCommunicatorTest {
 	void setUp() throws Exception {
 		crestronNVXCommunicator = new CrestronNVXCommunicator();
 		crestronNVXCommunicator.setTrustAllCertificates(true);
-		crestronNVXCommunicator.setHost("10.7.55.103");
+		crestronNVXCommunicator.setHost("");
 		crestronNVXCommunicator.setLogin("");
 		crestronNVXCommunicator.setPassword("");
 		crestronNVXCommunicator.setPort(443);
@@ -73,7 +73,7 @@ public class CrestronNVXCommunicatorTest {
 		Map<String, String> stats = extendedStatistics.getStatistics();
 		List<AdvancedControllableProperty> controls = extendedStatistics.getControllableProperties();
 		Assertions.assertEquals(87, stats.size()); // DM-NVX-D30
-		Assertions.assertEquals(15, controls.size());
+		Assertions.assertEquals(15, controls.size()); // DM-NVX-D30
 	}
 
 	@Test
@@ -251,4 +251,15 @@ public class CrestronNVXCommunicatorTest {
 		crestronNVXCommunicator.controlProperty(control);
 	}
 
+	@Test
+	void testForceSynchronizeNow() throws Exception {
+		crestronNVXCommunicator.getMultipleStatistics();
+		Thread.sleep(5000);
+		ControllableProperty control = new ControllableProperty();
+		String name = "DateTime#SynchronizeNow";
+		String value = "";
+		control.setProperty(name);
+		control.setValue(value);
+		crestronNVXCommunicator.controlProperty(control);
+	}
 }

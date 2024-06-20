@@ -34,7 +34,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +45,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 
 import com.avispl.symphony.api.dal.control.Controller;
 import com.avispl.symphony.api.dal.dto.control.AdvancedControllableProperty;
@@ -60,6 +60,7 @@ import com.avispl.symphony.api.dal.dto.monitor.Statistics;
 import com.avispl.symphony.api.dal.error.CommandFailureException;
 import com.avispl.symphony.api.dal.error.ResourceNotReachableException;
 import com.avispl.symphony.api.dal.monitor.Monitorable;
+import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.AudioMode;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronCommand;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronConstant;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronControlCommand;
@@ -68,14 +69,14 @@ import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.Cres
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.DeviceModel;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.PingMode;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.TimeZone;
-import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.AudioMode;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.dto.Streams;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
 import com.avispl.symphony.dal.util.StringUtils;
 
 /**
  * CrestronNVXCommunicator
- * Supported features are:
+ * <li>Supported features are:</li>
+ *
  * General
  * <ul>
  *   <li>Model</li>
@@ -239,7 +240,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 * ObjectMapper provides functionality for converting between Java objects and JSON.
 	 * It can be used to serialize objects to JSON format, and deserialize JSON data to objects.
 	 */
-	ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
 	 * cache to store key and value
@@ -259,7 +260,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	/**
 	 * store authentication information
 	 */
-	private String authenticationCookie = CrestronConstant.NONE;
+	private String authenticationCookie = CrestronConstant.EMPTY;
 
 	/**
 	 * store current device mode (Receiver/Transmitter)
@@ -440,6 +441,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			List<AdvancedControllableProperty> advancedControllableProperties = new ArrayList<>();
 
 			if (!isEmergencyDelivery) {
+				this.countMonitoringAndControllingCommand = 0;
 				convertConfigManagement();
 				retrieveMonitoringAndControllableProperties();
 				if (countMonitoringAndControllingCommand == CrestronCommand.values().length) {
@@ -485,7 +487,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				groupName = propertyList[0];
 			}
 
-			if (propertyName.equals(CrestronConstant.IPID) || propertyName.contains(CrestronConstant.NO) || propertyName.equals(CrestronConstant.UNIQUE_ID)) {
+			if (propertyName.equals(CrestronConstant.IPID) || propertyName.equals(CrestronConstant.NO) || propertyName.equals(CrestronConstant.UNIQUE_ID)) {
 				cacheFilterValue.put(property, value);
 				updateFilterCache(groupName + CrestronConstant.HASH);
 			} else {
@@ -493,25 +495,25 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				switch (item) {
 					case IGMP_SUPPORT:
 					case MODE:
-						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), value, true);
+						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), value, item.isRequireReboot());
 						updateLocalControlValue(stats, advancedControllableProperties, property, value);
 						break;
 					case TTL:
 						float ttl = Float.parseFloat(value);
-						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), ttl, true);
+						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), ttl,  item.isRequireReboot());
 						updateLocalControlValue(stats, advancedControllableProperties, property, String.valueOf((int) ttl));
 						stats.put("DiscoveryConfig#TTLCurrentValue", String.valueOf((int) ttl));
 						break;
 					case REBOOT:
 					case SYNCHRONIZE_NOW:
-						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), true, true);
+						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), true,  item.isRequireReboot());
 						break;
 					case CLOUD_CONFIGURATION:
 					case AUTO_UPDATE:
 					case AUTOMATIC_INPUT_ROUTING:
 					case DISCOVERY_AGENT:
 						boolean status = Objects.equals(value, "1");
-						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), status, true);
+						sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), status,  item.isRequireReboot());
 						updateLocalControlValue(stats, advancedControllableProperties, property, value);
 						break;
 					case ANALOG_VOLUME:
@@ -519,9 +521,9 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 						if (NumberUtils.isCreatable(outputNumber)) {
 							float volume = Float.parseFloat(value);
 							String uri = String.format(item.getUrl(), Integer.parseInt(outputNumber) - 1, "0");
-							sendControlCommand(uri, item.getName(), item.getParam(), item.getApiProperty(), volume, true);
+							sendControlCommand(uri, item.getName(), item.getParam(), item.getApiProperty(), volume, item.isRequireReboot());
 							updateLocalControlValue(stats, advancedControllableProperties, property, String.valueOf((int) volume));
-							stats.put("Output#AnanalogAudioCurrentVolume", String.valueOf((int) volume));
+							stats.put("Output#AnalogAudioCurrentVolume", String.valueOf((int) volume));
 						}
 						break;
 					case TIME:
@@ -532,14 +534,14 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 					case TIMEZONE:
 						TimeZone timeZone = TimeZone.getEnumByName(value);
 						if (timeZone != null) {
-							sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), timeZone.getValue(), true);
+							sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), timeZone.getValue(),  item.isRequireReboot());
 							updateLocalControlValue(stats, advancedControllableProperties, property, timeZone.getName());
 						}
 						break;
 					case AUDIO_MODE:
 						AudioMode source = AudioMode.getEnumByValue(value);
 						if (source != null) {
-							sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), source.getValue(), true);
+							sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), source.getValue(), item.isRequireReboot());
 							updateLocalControlValue(stats, advancedControllableProperties, property, value);
 						}
 						break;
@@ -593,7 +595,9 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		if (logger.isDebugEnabled()) {
 			logger.debug("Internal destroy is called.");
 		}
-
+		if (localExtendedStatistics != null && localExtendedStatistics.getStatistics() != null && localExtendedStatistics.getControllableProperties() != null) {
+			localExtendedStatistics = null;
+		}
 		cacheKeyAndValue.clear();
 		cacheFilterValue.clear();
 		super.internalDestroy();
@@ -614,19 +618,17 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	/**
 	 * Send GET request to retrieve all monitoring and controllable properties of Crestron device.
 	 */
-	public void retrieveMonitoringAndControllableProperties() throws Exception {
+	private void retrieveMonitoringAndControllableProperties() throws Exception {
 		if (!isValidCookie()) {
-			throw new FailedLoginException("Invalid cookie session. Please check credentials");
+			throw new FailedLoginException(String.format("Failed to login to device: %s.", this.authenticationCookie));
 		}
+
 		for (CrestronCommand command : CrestronCommand.values()) {
 			String groupName = command.getGroupCommand();
 			String apiGroup = command.getCommand();
-			if (Objects.equals(CrestronConstant.NONE, this.deviceMode) || (!Objects.equals(command.getDeviceMode(), CrestronConstant.EMPTY) && !Objects.equals(this.deviceMode, command.getDeviceMode()))) {
-				continue;
-			}
-			if (groupName.equals(CrestronCommand.DEVICE_SPECIFIC.getGroupCommand()) || groupName.equals(CrestronCommand.INPUT_ROUTING.getGroupCommand())) {
-				continue;
-			}
+			if (Objects.equals(CrestronConstant.NONE, this.deviceMode) || (!Objects.equals(command.getDeviceMode(), CrestronConstant.EMPTY) && !Objects.equals(this.deviceMode, command.getDeviceMode()))) continue;
+			if (groupName.equals(CrestronCommand.DEVICE_SPECIFIC.getGroupCommand()) || groupName.equals(CrestronCommand.INPUT_ROUTING.getGroupCommand())) continue;
+
 			JsonNode response = sendGetCommand(apiGroup);
 			cacheKeyAndValue.put(groupName, extractApiResponseByGroup(apiGroup, response));
 		}
@@ -640,9 +642,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		cacheKeyAndValue.put(CrestronCommand.DEVICE_SPECIFIC.getGroupCommand(), extractApiResponseByGroup(CrestronCommand.DEVICE_SPECIFIC.getCommand(), response));
 		cacheKeyAndValue.put(CrestronCommand.INPUT_ROUTING.getGroupCommand(), cacheKeyAndValue.get(CrestronCommand.DEVICE_SPECIFIC.getGroupCommand()));
 		JsonNode deviceSpecific = cacheKeyAndValue.get(CrestronCommand.DEVICE_SPECIFIC.getGroupCommand());
-		if (deviceSpecific != null) {
-			this.deviceMode = getDefaultValueForNullData(deviceSpecific.get("DeviceMode"));
-		}
+		this.deviceMode = deviceSpecific != null ? getDefaultValueForNullData(deviceSpecific.get(CrestronConstant.DEVICE_MODE)) : CrestronConstant.NONE;
 	}
 
 	/**
@@ -660,14 +660,11 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			String apiGroupName = property.getApiGroupName();
 			JsonNode apiResponse = cacheKeyAndValue.get(apiGroupName);
 
-			if (CrestronConstant.NONE.equals(this.deviceMode) || (!Objects.equals(CrestronConstant.EMPTY, property.getDeviceMode()) && !Objects.equals(this.deviceMode, property.getDeviceMode()))) {
-				continue;
-			}
-			if (apiResponse == null || apiResponse.asText().contains(CrestronConstant.UNSUPPORT_RESTAPI) || isForcePopulate && !forcePopulateGroup.equals(property.getGroup())) {
-				continue;
-			}
+			if (CrestronConstant.NONE.equals(this.deviceMode) || (!Objects.equals(CrestronConstant.EMPTY, property.getDeviceMode()) && !Objects.equals(this.deviceMode, property.getDeviceMode()))) continue;
+			if (apiResponse == null || apiResponse.asText().contains(CrestronConstant.UNSUPPORT_RESTAPI) || isForcePopulate && !forcePopulateGroup.equals(property.getGroup())) continue;
+
 			String propertyName = property.getGroup().concat(property.getName());
-			String propertyValue = getDefaultValueForNullData(apiResponse.get(property.getApiPropertyName()));
+			String propertyValue = capitalizeBooleanString(getDefaultValueForNullData(apiResponse.get(property.getApiPropertyName())));
 			switch (property) {
 				case MODEL:
 				case FIRMWARE_VERSION:
@@ -695,7 +692,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 					break;
 				case REBOOT_BUTTON:
 				case SYNCHRONIZE_NOW:
-					addAdvancedControlProperties(advancedControllableProperties, controlStats, createButton(propertyName, "Apply", CrestronConstant.EMPTY, 0L, CrestronConstant.TRUE), CrestronConstant.TRUE);
+					addAdvancedControlProperties(advancedControllableProperties, controlStats, createButton(propertyName, CrestronConstant.APPLY, CrestronConstant.EMPTY, 0L, CrestronConstant.TRUE), CrestronConstant.TRUE);
 					break;
 				case ADDRESS_SCHEMA:
 					populateNetwork(stats, apiResponse);
@@ -729,8 +726,9 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 					}
 					break;
 				case IP_ID:
-					JsonNode maxEntries = apiResponse.get("MaxEntries");
+					JsonNode maxEntries = apiResponse.get(CrestronConstant.MAX_ENTRIES);
 					if (maxEntries == null || maxEntries.asInt() <= 0) {
+						this.currentControlSystem = null;
 						break;
 					}
 
@@ -761,9 +759,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				case SERVER_PORT:
 				case CONNECTION:
 				case STATUS:
-					if (this.currentControlSystem == null) {
-						break;
-					}
+					if (this.currentControlSystem == null) break;
 					stats.put(propertyName, getDefaultValueForNullData(this.currentControlSystem.get(property.getApiPropertyName())));
 					break;
 				case INPUT_NAME:
@@ -840,9 +836,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				case TRANSMIT_RECEIVE_STATUS:
 				case TRANSMIT_RECEIVE_HORIZONTAL_RESOLUTION:
 				case TRANSMIT_RECEIVE_VERTICAL_RESOLUTION:
-					if (this.currentStream == null) {
-						break;
-					}
+					if (this.currentStream == null) break;
 					if (property == TRANSMIT_DEVICE_NAME || property == RECEIVE_DEVICE_NAME) {
 						stats.put(propertyName, propertyValue);
 					} else {
@@ -866,9 +860,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 						streamType = apiResponse.get(CrestronConstant.STREAMS);
 					}
 
-					if (fields == null) {
-						break;
-					}
+					if (fields == null) break;
 					while (fields.hasNext()) {
 						Entry<String, JsonNode> field = fields.next();
 						String key = field.getKey();
@@ -901,16 +893,12 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				case AVAILABLE_RESOLUTION:
 				case AVAILABLE_AUDIO_FORMAT:
 				case AVAILABLE_BITRATE:
-					if (this.currentStream == null) {
-						break;
-					}
-					stats.put(propertyName, getDefaultValueForNullData(this.currentStream.get(property.getApiPropertyName())));
+					if (this.currentStream == null) break;
+					stats.put(propertyName, capitalizeBooleanString(getDefaultValueForNullData(this.currentStream.get(property.getApiPropertyName()))));
 					break;
 				case ANALOG_AUDIO_MODE:
 					DeviceModel model = getDeviceModel(stats);
-					if (model != DeviceModel.DM_NVX_350 && model != DeviceModel.DM_NVX_352) {
-						break;
-					}
+					if (model != DeviceModel.DM_NVX_350 && model != DeviceModel.DM_NVX_352) break;
 
 					AudioMode mode = AudioMode.getEnumByValue(propertyValue);
 					if (mode != null) {
@@ -934,14 +922,12 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				return objectMapper.readTree(response);
 			}
 		} catch (FailedLoginException e) {
-			throw new FailedLoginException("Error when login, please check the credentials");
+			throw new FailedLoginException("Failed login to device");
 		} catch (CommandFailureException e) {
-			throw new ResourceNotReachableException("Error when send api request to " + uri);
-		} catch (JsonParseException e) {
-			throw new FailedLoginException("Error when convert json to string");
+			throw new ResourceNotReachableException("An error occur when send api request to " + uri, e);
 		} catch (Exception e) {
 			countMonitoringAndControllingCommand++;
-			logger.error("Error when send api request to " + uri + " with error message: ", e);
+			logger.error("An error when send api request to " + uri, e);
 		}
 		return null;
 	}
@@ -954,9 +940,9 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 * @param param request body
 	 * @param fieldName name of field to control
 	 * @param value to set for specific filed
-	 * @param isRetry retry to send control command if timeout
+	 * @param isRequireReboot reboot device to apply changes
 	 */
-	private void sendControlCommand(String uri, String name, String param, String fieldName, Object value, boolean isRetry) throws Exception {
+	private void sendControlCommand(String uri, String name, String param, String fieldName, Object value, boolean isRequireReboot) throws Exception {
 		try {
 			HashMap<String, Object> body = new HashMap<>();
 			body.put(fieldName, value);
@@ -964,28 +950,27 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			JsonNode jsonBody = objectMapper.readTree(String.format(param, objectMapper.writeValueAsString(body)));
 			String response = this.doPost(uri, jsonBody, String.class);
 			JsonNode jsonResponse = objectMapper.readTree(response);
-			JsonNode actions = jsonResponse.get("Actions");
+			JsonNode actions = jsonResponse.get(CrestronConstant.ACTIONS);
 
 			if (response == null || actions == null || actions.get(0) == null) {
 				throw new IllegalArgumentException(String.format("Failed to send control command %s to control %s", uri, name));
 			}
 
-			JsonNode results = actions.get(0).get("Results");
-			if (results == null || !results.isArray() || results.isEmpty()) {
-				return;
-			}
+			JsonNode results = actions.get(0).get(CrestronConstant.RESULTS);
+			if (results == null || !results.isArray() || results.isEmpty()) return;
 
-			List<JsonNode> status = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-			}).readValue(results);
-			int statusId = Integer.parseInt(status.get(0).get("StatusId").asText());
+			List<JsonNode> status = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {}).readValue(results);
+			int statusId = Integer.parseInt(status.get(0).get(CrestronConstant.STATUS_ID).asText());
 			if (statusId < 0) {
 				throw new IllegalArgumentException(String.format("Failed to send control command %s to control %s with status id %s", uri, name, statusId));
 			}
-		} catch (Exception e) {
-			if (isRetry && getCookieSession()) {
-				sendControlCommand(uri, name, param, fieldName, value, false);
-				return;
+
+			// Crestron device require rebooting for some controls to take effect
+			if (isRequireReboot) {
+				CrestronControlCommand reboot = CrestronControlCommand.REBOOT;
+				sendControlCommand(reboot.getUrl(), reboot.getName(), reboot.getParam(), reboot.getApiProperty(), true, false);
 			}
+		} catch (Exception e) {
 			throw new IllegalArgumentException(String.format("Can't control %s with value is %s. ", name, value), e);
 		}
 	}
@@ -1006,23 +991,19 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			String currentDate = stats.get("DateTime#Date");
 			String currentTime = stats.get("DateTime#Time");
 			String dateTimeString = "%s %s";
-			if (currentDate == null || currentTime == null) {
-				return;
-			}
+			if (currentDate == null || currentTime == null) return;
+
 			String newDateTime = item == CrestronControlCommand.DATE ? String.format(dateTimeString, value, currentTime) : String.format(dateTimeString, currentDate, value);
 			String newDateTimeFormat = LocalDateTime.parse(newDateTime, datetimeFormat).atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
-			if (CrestronConstant.NONE.equals(newDateTimeFormat)) {
-				return;
-			}
-			sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), newDateTimeFormat, true);
+			sendControlCommand(item.getUrl(), item.getName(), item.getParam(), item.getApiProperty(), newDateTimeFormat, item.isRequireReboot());
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Failed to send command to control date time ", e);
 		}
 	}
 
 	/**
-	 * Updates devices' control value, after the control command was executed with the specified value.
+	 * Updates devices control value, after the control command was executed with the specified value.
 	 *
 	 * @param stats the stats are list of Statistics
 	 * @param advancedControllableProperties the advancedControllableProperty are AdvancedControllableProperty instance
@@ -1046,22 +1027,17 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 * @param property name of property
 	 */
 	private void populateAudioVideoInput(Map<String, String> stats, Map<String, String> controlStats, List<AdvancedControllableProperty> advancedControllableProperties, JsonNode apiResponse,
-			String groupName, CrestronPropertyList property)
-			throws IOException {
+			String groupName, CrestronPropertyList property) throws IOException {
 		String number = cacheFilterValue.get(CrestronConstant.INPUT_GROUP + CrestronPropertyList.INPUT_NO.getName());
-		if (!apiResponse.has("Inputs")) {
-			return;
-		}
+		if (!apiResponse.has(CrestronConstant.INPUTS)) return;
 
-		List<JsonNode> inputJson = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-		}).readValue(apiResponse.get("Inputs"));
+		List<JsonNode> inputJson = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {}).readValue(apiResponse.get(CrestronConstant.INPUTS));
 		JsonNode input = NullNode.getInstance();
 		JsonNode portInput = NullNode.getInstance();
 		List<JsonNode> portInputs;
 
-		if (inputJson == null || inputJson.isEmpty()) {
-			return;
-		}
+		if (inputJson == null || inputJson.isEmpty()) return;
+
 		if (number == null || Integer.parseInt(number) - 1 >= inputJson.size()) {
 			number = "1";
 		}
@@ -1071,20 +1047,17 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			input = inputJson.get(index);
 		}
 
-		if (input != null && !input.isNull() && input.has("Ports")) {
-			portInputs = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-			}).readValue(input.get("Ports"));
+		if (input != null && !input.isNull() && input.has(CrestronConstant.PORTS)) {
+			portInputs = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {}).readValue(input.get(CrestronConstant.PORTS));
 			portInput = portInputs != null && !portInputs.isEmpty() ? portInputs.get(0) : null;
 		}
 
-		if (portInput == null || portInput.isNull()) {
-			return;
-		}
+		if (portInput == null || portInput.isNull()) return;
 		switch (property) {
 			case INPUT_NO:
 				int initialValue = Integer.parseInt(number);
 				String[] values = IntStream.range(0, inputJson.size()).mapToObj(i -> String.valueOf(i + 1)).toArray(String[]::new);
-				addAdvancedControlProperties(advancedControllableProperties, controlStats, createDropdown(groupName, values, String.valueOf(initialValue)), number);
+				addAdvancedControlProperties(advancedControllableProperties, controlStats, createDropdown(groupName, values, String.valueOf(initialValue)), String.valueOf(initialValue));
 				break;
 			case INPUT_NAME:
 			case INPUT_SOURCE_HDCP:
@@ -1132,22 +1105,16 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 * @param property name of property
 	 */
 	private void populateAudioVideoOutput(Map<String, String> stats, Map<String, String> controlStats, List<AdvancedControllableProperty> advancedControllableProperties, JsonNode apiResponse,
-			String groupName, CrestronPropertyList property)
-			throws IOException {
+			String groupName, CrestronPropertyList property) throws IOException {
 		String number = cacheFilterValue.get(CrestronConstant.OUTPUT_GROUP + CrestronPropertyList.OUTPUT_NO.getName());
-		if (!apiResponse.has("Outputs")) {
-			return;
-		}
+		if (!apiResponse.has(CrestronConstant.OUTPUTS)) return;
 
-		List<JsonNode> outputJson = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-		}).readValue(apiResponse.get("Outputs"));
+		List<JsonNode> outputJson = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {}).readValue(apiResponse.get(CrestronConstant.OUTPUTS));
 		JsonNode output = NullNode.getInstance();
 		JsonNode portOutput = NullNode.getInstance();
 		List<JsonNode> portOutputs;
 
-		if (outputJson == null || outputJson.isEmpty()) {
-			return;
-		}
+		if (outputJson == null || outputJson.isEmpty()) return;
 		if (number == null || Integer.parseInt(number) - 1 > outputJson.size()) {
 			number = "1";
 		}
@@ -1157,15 +1124,12 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			output = outputJson.get(index);
 		}
 
-		if (output != null && !output.isNull() && output.has("Ports")) {
-			portOutputs = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-			}).readValue(output.get("Ports"));
+		if (output != null && !output.isNull() && output.has(CrestronConstant.PORTS)) {
+			portOutputs = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {}).readValue(output.get(CrestronConstant.PORTS));
 			portOutput = portOutputs != null && !portOutputs.isEmpty() ? portOutputs.get(0) : null;
 		}
 
-		if (portOutput == null || portOutput.isNull()) {
-			return;
-		}
+		if (portOutput == null || portOutput.isNull()) return;
 		switch (property) {
 			case OUTPUT_NO:
 				int initialValue = Integer.parseInt(number);
@@ -1176,9 +1140,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			case OUTPUT_SOURCE_HDCP:
 			case DISABLED_BY_HDCP:
 				JsonNode hdmi = portOutput.get(CrestronConstant.HDMI);
-				if (hdmi == null) {
-					break;
-				}
+				if (hdmi == null) break;
 
 				String hdmiValue = getDefaultValueForNullData(hdmi.get(property.getApiPropertyName()));
 				if (property == CrestronPropertyList.DISABLED_BY_HDCP && !CrestronConstant.NONE.equals(hdmiValue)) {
@@ -1203,7 +1165,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 					String volume = getDefaultValueForNullData(portOutput.get("Audio").get("Volume"));
 					if (!CrestronConstant.NONE.equals(volume)) {
 						addAdvancedControlProperties(advancedControllableProperties, controlStats, createSlider(stats, groupName, "-80", "24", -80f, 24f, Float.parseFloat(volume)), volume);
-						stats.put("Output#AnanalogAudioCurrentVolume", volume);
+						controlStats.put("Output#AnalogAudioCurrentVolume", volume);
 					}
 				} else {
 					stats.put(groupName, getDefaultValueForNullData(portOutput.get(property.getApiPropertyName())));
@@ -1229,9 +1191,8 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		String value = getDefaultValueForNullData(apiResponse.get(property.getApiPropertyName()));
 		switch (property) {
 			case NTPTIMESERVERS:
-				if (!ntpJson.has(CrestronConstant.SERVERS_CURRENT_KEY_LIST)) {
-					break;
-				}
+				if (!ntpJson.has(CrestronConstant.SERVERS_CURRENT_KEY_LIST)) break;
+
 				List<JsonNode> serverCurrentKeyListJson = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
 				}).readValue(ntpJson.get(CrestronConstant.SERVERS_CURRENT_KEY_LIST));
 				for (JsonNode serverCurrentKey : serverCurrentKeyListJson) {
@@ -1267,46 +1228,29 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 * @param stats store monitoring properties
 	 * @param apiResponse response from api
 	 */
-	private void populateNetwork(Map<String, String> stats, JsonNode apiResponse)
-			throws IOException {
-		if (!apiResponse.has(CrestronConstant.ADAPTERS)) {
-			return;
-		}
-		List<JsonNode> adapters = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-		}).readValue(apiResponse.get(CrestronConstant.ADAPTERS));
+	private void populateNetwork(Map<String, String> stats, JsonNode apiResponse) throws IOException {
+		if (!apiResponse.has(CrestronConstant.ADAPTERS)) return;
 
-//		String schemaValue = cacheFilterValue.get(groupName);
+		List<JsonNode> adapters = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {}).readValue(apiResponse.get(CrestronConstant.ADAPTERS));
 		JsonNode currentAdapter = NullNode.getInstance();
-//		for (JsonNode adapter: adapters) {
-//			String schema = adapter.get(CrestronConstant.ADDRESS_SCHEMA).asText();
-//
-//			if (Objects.equals(schemaValue, schema)) {
-//				currentAdapter = adapter;
-//			}
-//		}
 
 		if (adapters != null && !adapters.isEmpty()) {
 			currentAdapter = adapters.get(0);
 		}
 
-		if (currentAdapter == null || currentAdapter.isNull()) {
-			return;
-		}
+		if (currentAdapter == null || currentAdapter.isNull()) return;
 		JsonNode currentSchema = currentAdapter.get(currentAdapter.get(CrestronConstant.ADDRESS_SCHEMA).asText());
-		stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.LINK_ACTIVE.getName(), getDefaultValueForNullData(currentAdapter.get(CrestronPropertyList.LINK_ACTIVE.getApiPropertyName())));
+		stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.LINK_ACTIVE.getName(), capitalizeBooleanString(getDefaultValueForNullData(currentAdapter.get(CrestronPropertyList.LINK_ACTIVE.getApiPropertyName()))));
 		stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.MAC_ADDRESS.getName(), getDefaultValueForNullData(currentAdapter.get(CrestronPropertyList.MAC_ADDRESS.getApiPropertyName())));
 
-		if (currentSchema == null) {
-			return;
-		}
-		stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.DHCP_ENABLED.getName(), getDefaultValueForNullData(currentSchema.get(CrestronPropertyList.DHCP_ENABLED.getApiPropertyName())));
+		if (currentSchema == null) return;
+		stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.DHCP_ENABLED.getName(), capitalizeBooleanString(getDefaultValueForNullData(currentSchema.get(CrestronPropertyList.DHCP_ENABLED.getApiPropertyName()))));
 		stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.DEFAULT_GATEWAY.getName(),
 				getDefaultValueForNullData(currentSchema.get(CrestronPropertyList.DEFAULT_GATEWAY.getApiPropertyName())));
 
 		// Get address information
-		if (currentSchema.has("Addresses")) {
-			List<JsonNode> addresses = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-			}).readValue(currentSchema.get("Addresses"));
+		if (currentSchema.has(CrestronConstant.ADDRESSES)) {
+			List<JsonNode> addresses = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {}).readValue(currentSchema.get(CrestronConstant.ADDRESSES));
 			for (JsonNode address : addresses) {
 				stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.IP_ADDRESS.getName(), getDefaultValueForNullData(address.get(CrestronPropertyList.IP_ADDRESS.getApiPropertyName())));
 				stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.SUBNET_MASK.getName(), getDefaultValueForNullData(address.get(CrestronPropertyList.SUBNET_MASK.getApiPropertyName())));
@@ -1314,21 +1258,19 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		}
 
 		// Get Static DNS information
-		if (currentSchema.has("DnsServers")) {
+		if (currentSchema.has(CrestronConstant.DNS_SERVERS)) {
 			List<JsonNode> staticDns = objectMapper.readerFor(new TypeReference<List<JsonNode>>() {
-			}).readValue(currentSchema.get("DnsServers"));
+			}).readValue(currentSchema.get(CrestronConstant.DNS_SERVERS));
 			if (staticDns != null && staticDns.size() >= 2) {
 				stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.PRIMARY_STATIC_DNS.getName(), getDefaultValueForNullData(staticDns.get(0)));
 				stats.put(CrestronConstant.NETWORK_GROUP + CrestronPropertyList.SECONDARY_STATIC_DNS.getName(), getDefaultValueForNullData(staticDns.get(1)));
 			}
 		}
-
-//		JsonNode value = currentAdapter.get(CrestronConstant.ADDRESS_SCHEMA);
-//		stats.put(groupName, getDefaultValueForNullData(value));
 	}
 
 	/**
 	 * Update monitoring data base on filter value
+	 * @param groupName name of group
 	 */
 	private void updateFilterCache(String groupName) throws Exception {
 		Map<String, String> stats = this.localExtendedStatistics.getStatistics();
@@ -1347,7 +1289,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	}
 
 	/**
-	 * Login to crestron nvx device
+	 * Login to Crestron DM NVX device
 	 */
 	private boolean getCookieSession() {
 		try {
@@ -1359,13 +1301,15 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			StringBuilder sb = new StringBuilder();
 			Header[] headers = response.getHeaders(CrestronConstant.SET_COOKIE);
 
-			if (response.getStatusLine().getStatusCode() == 403) {
+			if (response.getStatusLine().getStatusCode() == 403){
+				this.authenticationCookie = EntityUtils.toString(response.getEntity());
 				return false;
 			}
 			Arrays.stream(headers).forEach(item -> sb.append(removeAttributes(item.getValue())));
 
 			this.authenticationCookie = sb.toString();
 		} catch (Exception e) {
+			this.authenticationCookie = CrestronConstant.EMPTY;
 			throw new ResourceNotReachableException("Failed to send login request to device", e);
 		}
 		return true;
@@ -1404,22 +1348,23 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	}
 
 	/**
-	 * Check API token validation
-	 * If the token expires, we send a request to get a new token
+	 * Send POST request to retrieve cookie session
 	 *
 	 * @return boolean
 	 */
 	private boolean isValidCookie() throws Exception {
+		boolean isAuthenticate = false;
 		try {
-			retrieveDeviceMode();
-		} catch (Exception e) {
-			boolean isAuthenticated = getCookieSession();
-			if (isAuthenticated) {
+			isAuthenticate = getCookieSession();
+			if (isAuthenticate) {
 				retrieveDeviceMode();
 			}
-			return isAuthenticated;
+		} catch (ResourceNotReachableException e) {
+			throw new ResourceNotReachableException("Failed to send login request to device", e);
+		} catch (Exception e) {
+			logger.error("Failed to retrieve cookie session", e);
 		}
-		return true;
+		return isAuthenticate;
 	}
 
 	/**
@@ -1450,18 +1395,28 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 */
 	private DeviceModel getDeviceModel(Map<String, String> stats) {
 		String model = stats.get(CrestronPropertyList.MODEL.getName());
-		if (CrestronConstant.NONE.equals(model)) {
-			return null;
-		}
+		if (CrestronConstant.NONE.equals(model)) return null;
 
 		return DeviceModel.getDeviceModelByName(model);
+	}
+
+	/**
+	 * Capitalize true/false value to True/False
+	 */
+	private String capitalizeBooleanString(String value) {
+		if (CrestronConstant.TRUE.equals(value)) {
+			return "True";
+		} else if (CrestronConstant.FALSE.equals(value)) {
+			return "False";
+		}
+		return value;
 	}
 
 	/**
 	 * This method is used to validate input config management from user
 	 */
 	private void convertConfigManagement() {
-		isConfigManagement = StringUtils.isNotNullOrEmpty(this.configManagement) && this.configManagement.equalsIgnoreCase(CrestronConstant.TRUE);
+		isConfigManagement = StringUtils.isNotNullOrEmpty(this.configManagement) && this.configManagement.trim().equalsIgnoreCase(CrestronConstant.TRUE);
 	}
 
 	/**
