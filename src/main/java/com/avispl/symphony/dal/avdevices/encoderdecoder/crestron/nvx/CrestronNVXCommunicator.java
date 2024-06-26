@@ -5,6 +5,8 @@
 package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx;
 
 
+import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.ACTIVE_AUDIO_SOURCE;
+import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.AUDIO_SOURCE;
 import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.RECEIVE_DEVICE_NAME;
 import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.TRANSMIT_DEVICE_NAME;
 
@@ -61,6 +63,7 @@ import com.avispl.symphony.api.dal.error.CommandFailureException;
 import com.avispl.symphony.api.dal.error.ResourceNotReachableException;
 import com.avispl.symphony.api.dal.monitor.Monitorable;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.AudioMode;
+import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.AudioSource;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronCommand;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronConstant;
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronControlCommand;
@@ -360,8 +363,6 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 
 	/**
 	 * Constructs a new instance of CrestronNVXCommunicator.
-	 *
-	 * @throws IOException If an I/O error occurs while loading the properties mapping YAML file.
 	 */
 	public CrestronNVXCommunicator() throws IOException {
 		this.setTrustAllCertificates(true);
@@ -595,9 +596,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		if (logger.isDebugEnabled()) {
 			logger.debug("Internal destroy is called.");
 		}
-		if (localExtendedStatistics != null && localExtendedStatistics.getStatistics() != null && localExtendedStatistics.getControllableProperties() != null) {
-			localExtendedStatistics = null;
-		}
+		localExtendedStatistics = null;
 		cacheKeyAndValue.clear();
 		cacheFilterValue.clear();
 		super.internalDestroy();
@@ -626,8 +625,8 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		for (CrestronCommand command : CrestronCommand.values()) {
 			String groupName = command.getGroupCommand();
 			String apiGroup = command.getCommand();
-			if (Objects.equals(CrestronConstant.NONE, this.deviceMode) || (!Objects.equals(command.getDeviceMode(), CrestronConstant.EMPTY) && !Objects.equals(this.deviceMode, command.getDeviceMode()))) continue;
-			if (groupName.equals(CrestronCommand.DEVICE_SPECIFIC.getGroupCommand()) || groupName.equals(CrestronCommand.INPUT_ROUTING.getGroupCommand())) continue;
+			if (Objects.equals(CrestronConstant.NONE, this.deviceMode) || (!Objects.equals(command.getDeviceMode(), CrestronConstant.EMPTY) && !Objects.equals(this.deviceMode, command.getDeviceMode())) ||
+					groupName.equals(CrestronCommand.DEVICE_SPECIFIC.getGroupCommand()) || groupName.equals(CrestronCommand.INPUT_ROUTING.getGroupCommand())) continue;
 
 			JsonNode response = sendGetCommand(apiGroup);
 			cacheKeyAndValue.put(groupName, extractApiResponseByGroup(apiGroup, response));
@@ -660,8 +659,8 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			String apiGroupName = property.getApiGroupName();
 			JsonNode apiResponse = cacheKeyAndValue.get(apiGroupName);
 
-			if (CrestronConstant.NONE.equals(this.deviceMode) || (!Objects.equals(CrestronConstant.EMPTY, property.getDeviceMode()) && !Objects.equals(this.deviceMode, property.getDeviceMode()))) continue;
-			if (apiResponse == null || apiResponse.asText().contains(CrestronConstant.UNSUPPORT_RESTAPI) || isForcePopulate && !forcePopulateGroup.equals(property.getGroup())) continue;
+			if (apiResponse == null || apiResponse.asText().contains(CrestronConstant.UNSUPPORT_RESTAPI) || isForcePopulate && !forcePopulateGroup.equals(property.getGroup()) ||
+					CrestronConstant.NONE.equals(this.deviceMode) || (!Objects.equals(CrestronConstant.EMPTY, property.getDeviceMode()) && !Objects.equals(this.deviceMode, property.getDeviceMode()))) continue;
 
 			String propertyName = property.getGroup().concat(property.getName());
 			String propertyValue = capitalizeBooleanString(getDefaultValueForNullData(apiResponse.get(property.getApiPropertyName())));
@@ -688,6 +687,10 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				case VIDEO_SOURCE:
 				case ACTIVE_AUDIO_SOURCE:
 				case ACTIVE_VIDEO_SOURCE:
+					if (property == AUDIO_SOURCE || property == ACTIVE_AUDIO_SOURCE) {
+						AudioSource source = AudioSource.getEnumByValue(propertyValue);
+						propertyValue = source != null ? source.getName() : propertyValue;
+					}
 					stats.put(propertyName, propertyValue);
 					break;
 				case REBOOT_BUTTON:
@@ -721,7 +724,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 					}
 
 					if (!CrestronConstant.NONE.equals(propertyValue)) {
-						int status = propertyValue.equals(CrestronConstant.TRUE) ? 1 : 0;
+						int status = propertyValue.equalsIgnoreCase(CrestronConstant.TRUE) ? 1 : 0;
 						addAdvancedControlProperties(advancedControllableProperties, controlStats, createSwitch(propertyName, status, CrestronConstant.OFF, CrestronConstant.ON), String.valueOf(status));
 					}
 					break;
@@ -871,6 +874,11 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 						if (uniqueId.equals(key) && streamType != null) {
 							this.currentStream = streamType.get(uniqueId);
 						}
+					}
+
+					if (this.currentStream == null && !uniqueIds.isEmpty() && streamType != null) {
+						uniqueId = uniqueIds.get(0);
+						this.currentStream = streamType.get(uniqueId);
 					}
 
 					if (uniqueIds.contains(uniqueId)) {
@@ -1086,7 +1094,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			case SYNC_DETECTED:
 				String value = getDefaultValueForNullData(portInput.get(property.getApiPropertyName()));
 				if ((property == CrestronPropertyList.SYNC_DETECTED || property == CrestronPropertyList.INTERLACED) && !CrestronConstant.NONE.equals(value)) {
-					stats.put(groupName, value.equals(CrestronConstant.TRUE) ? CrestronConstant.YES : CrestronConstant.NO);
+					stats.put(groupName, value.equalsIgnoreCase(CrestronConstant.TRUE) ? CrestronConstant.YES : CrestronConstant.NO);
 				} else {
 					stats.put(groupName, value);
 				}
@@ -1115,7 +1123,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		List<JsonNode> portOutputs;
 
 		if (outputJson == null || outputJson.isEmpty()) return;
-		if (number == null || Integer.parseInt(number) - 1 > outputJson.size()) {
+		if (number == null || Integer.parseInt(number) - 1 >= outputJson.size()) {
 			number = "1";
 		}
 
@@ -1140,11 +1148,14 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			case OUTPUT_SOURCE_HDCP:
 			case DISABLED_BY_HDCP:
 				JsonNode hdmi = portOutput.get(CrestronConstant.HDMI);
-				if (hdmi == null) break;
+				if (hdmi == null) {
+					stats.put(groupName, CrestronConstant.NONE);
+					break;
+				}
 
 				String hdmiValue = getDefaultValueForNullData(hdmi.get(property.getApiPropertyName()));
 				if (property == CrestronPropertyList.DISABLED_BY_HDCP && !CrestronConstant.NONE.equals(hdmiValue)) {
-					stats.put(groupName, hdmiValue.equals(CrestronConstant.TRUE) ? CrestronConstant.YES : CrestronConstant.NO);
+					stats.put(groupName, hdmiValue.equalsIgnoreCase(CrestronConstant.TRUE) ? CrestronConstant.YES : CrestronConstant.NO);
 				} else {
 					stats.put(groupName, hdmiValue);
 				}
@@ -1152,7 +1163,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			case SINK_CONNECTED:
 				String value = getDefaultValueForNullData(portOutput.get(property.getApiPropertyName()));
 				if (!Objects.equals(value, CrestronConstant.NONE)) {
-					stats.put(groupName, value.equals(CrestronConstant.TRUE) ? CrestronConstant.YES : CrestronConstant.NO);
+					stats.put(groupName, value.equalsIgnoreCase(CrestronConstant.TRUE) ? CrestronConstant.YES : CrestronConstant.NO);
 				} else {
 					stats.put(groupName, value);
 				}
@@ -1164,7 +1175,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				if (property == CrestronPropertyList.ANALOG_AUDIO_VOLUME) {
 					String volume = getDefaultValueForNullData(portOutput.get("Audio").get("Volume"));
 					if (!CrestronConstant.NONE.equals(volume)) {
-						addAdvancedControlProperties(advancedControllableProperties, controlStats, createSlider(stats, groupName, "-80", "24", -80f, 24f, Float.parseFloat(volume)), volume);
+						addAdvancedControlProperties(advancedControllableProperties, controlStats, createSlider(controlStats, groupName, "-80", "24", -80f, 24f, Float.parseFloat(volume)), volume);
 						controlStats.put("Output#AnalogAudioCurrentVolume", volume);
 					}
 				} else {
@@ -1213,9 +1224,8 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				break;
 			case DATE:
 			case TIME:
-				if (!CrestronConstant.NONE.equals(value)) {
-					DateTimeFormatter formater = property == CrestronPropertyList.DATE ? dateFormat : timeFormat;
-					String displayValue = OffsetDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDateTime().format(formater);
+				String displayValue = convertISODateTimeToLocalDateTimeString(value, property);
+				if (!CrestronConstant.NONE.equals(displayValue)) {
 					addAdvancedControlProperties(advancedControllableProperties, controlStats, createText(groupName, displayValue), displayValue);
 				}
 				break;
@@ -1310,7 +1320,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			this.authenticationCookie = sb.toString();
 		} catch (Exception e) {
 			this.authenticationCookie = CrestronConstant.EMPTY;
-			throw new ResourceNotReachableException("Failed to send login request to device", e);
+			throw new ResourceNotReachableException("An error occurred when attempting to send a login request to the device", e);
 		}
 		return true;
 	}
@@ -1404,12 +1414,27 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 * Capitalize true/false value to True/False
 	 */
 	private String capitalizeBooleanString(String value) {
-		if (CrestronConstant.TRUE.equals(value)) {
+		if (CrestronConstant.TRUE.equalsIgnoreCase(value)) {
 			return "True";
-		} else if (CrestronConstant.FALSE.equals(value)) {
+		} else if (CrestronConstant.FALSE.equalsIgnoreCase(value)) {
 			return "False";
 		}
 		return value;
+	}
+
+	/**
+	 * Convert ISO date time format to local date time
+	 *
+	 * @param dateTime iso date time string
+	 * @param property date or time property
+	 */
+	private String convertISODateTimeToLocalDateTimeString(String dateTime, CrestronPropertyList property) {
+		try {
+			DateTimeFormatter formater = property == CrestronPropertyList.DATE ? dateFormat : timeFormat;
+			return OffsetDateTime.parse(dateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDateTime().format(formater);
+		} catch (Exception e) {
+			return CrestronConstant.NONE;
+		}
 	}
 
 	/**

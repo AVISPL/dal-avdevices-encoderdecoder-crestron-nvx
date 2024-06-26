@@ -63,7 +63,7 @@ public enum CrestronPropertyList {
 	AUDIO_FORMAT("AudioFormat",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "Format", CrestronConstant.EMPTY),
 	AUDIO_CHANNELS("AudioChannel",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "Channels", CrestronConstant.EMPTY),
 	EDID("EDID",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "CurrentEdid", CrestronConstant.EMPTY),
-	HDCP_RECEIVER_CAPABILITY("HdcpReceiverCapability",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "HdcpReceiverCapability", CrestronConstant.EMPTY),
+	HDCP_RECEIVER_CAPABILITY("HDCPReceiverCapability",CrestronConstant.INPUT_GROUP, false ,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP, "HdcpReceiverCapability", CrestronConstant.EMPTY),
 
 	OUTPUT_NO("No",CrestronConstant.OUTPUT_GROUP, false,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,  "Uuid", CrestronConstant.EMPTY),
 	OUTPUT_NAME("Name",CrestronConstant.OUTPUT_GROUP, false,CrestronConstant.DEVICE_AUDIO_VIDEO_INPUT_OUTPUT_API_GROUP,  "Name", CrestronConstant.EMPTY),
@@ -87,7 +87,7 @@ public enum CrestronPropertyList {
 	SYNCHRONIZE_NOW("SynchronizeNow",CrestronConstant.DATE_TIME_GROUP, true,CrestronConstant.DATE_TIME_GROUP, "ForceSynchronizationNow", CrestronConstant.EMPTY),
 	DATE("Date",CrestronConstant.DATE_TIME_GROUP, false,CrestronConstant.DATE_TIME_GROUP, "CurrentTime", CrestronConstant.EMPTY),
 	TIME("Time",CrestronConstant.DATE_TIME_GROUP, false,CrestronConstant.DATE_TIME_GROUP, "CurrentTime", CrestronConstant.EMPTY),
-	NTPTIMESERVERS("NTPTimeServers",CrestronConstant.DATE_TIME_GROUP, false,CrestronConstant.DATE_TIME_GROUP, "Address", CrestronConstant.EMPTY),
+	NTPTIMESERVERS("NTP",CrestronConstant.DATE_TIME_GROUP, false,CrestronConstant.DATE_TIME_GROUP, "Address", CrestronConstant.EMPTY),
 
 	DISCOVERY_AGENT("DiscoveryAgent",CrestronConstant.DISCOVERY_CONFIG_GROUP, true,CrestronConstant.DISCOVERY_CONFIG_GROUP,  "DiscoveryAgent", CrestronConstant.EMPTY),
 	TTL("TTL",CrestronConstant.DISCOVERY_CONFIG_GROUP, true,CrestronConstant.DISCOVERY_CONFIG_GROUP,  "Ttl", CrestronConstant.EMPTY),

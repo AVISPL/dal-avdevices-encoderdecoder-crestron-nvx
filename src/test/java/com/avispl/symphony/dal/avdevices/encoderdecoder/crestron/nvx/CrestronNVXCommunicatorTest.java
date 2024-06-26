@@ -72,7 +72,7 @@ public class CrestronNVXCommunicatorTest {
 		extendedStatistics = (ExtendedStatistics) crestronNVXCommunicator.getMultipleStatistics().get(0);
 		Map<String, String> stats = extendedStatistics.getStatistics();
 		List<AdvancedControllableProperty> controls = extendedStatistics.getControllableProperties();
-		Assertions.assertEquals(87, stats.size()); // DM-NVX-D30
+		Assertions.assertEquals(88, stats.size()); // DM-NVX-D30
 		Assertions.assertEquals(15, controls.size()); // DM-NVX-D30
 	}
 
