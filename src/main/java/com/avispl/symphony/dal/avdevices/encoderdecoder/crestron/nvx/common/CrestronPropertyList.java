@@ -80,7 +80,7 @@ public enum CrestronPropertyList {
 	CUSTOM_URL_PATH("CustomUrlPath",CrestronConstant.AUTO_UPDATE_GROUP, false,CrestronConstant.AUTO_UPDATE_GROUP, "ManifestPath", CrestronConstant.EMPTY),
 	SCHEDULE_DAY_OF_WEEK("ScheduleDayOfWeek",CrestronConstant.AUTO_UPDATE_GROUP, false,CrestronConstant.AUTO_UPDATE_GROUP, "DayOfWeek", CrestronConstant.EMPTY),
 	SCHEDULE_TIME_OF_DAY( "ScheduleTimeOfDay",CrestronConstant.AUTO_UPDATE_GROUP, false,CrestronConstant.AUTO_UPDATE_GROUP, "TimeOfDay", CrestronConstant.EMPTY),
-	SCHEDULE_POLL_INTERVAL("SchedulePollInterval",CrestronConstant.AUTO_UPDATE_GROUP, false,CrestronConstant.AUTO_UPDATE_GROUP, "CheckInterval", CrestronConstant.EMPTY),
+	SCHEDULE_POLL_INTERVAL("SchedulePollInterval(minutes)",CrestronConstant.AUTO_UPDATE_GROUP, false,CrestronConstant.AUTO_UPDATE_GROUP, "CheckInterval", CrestronConstant.EMPTY),
 
 	TIMESYNCHRONIZE("TimeSynchronize",CrestronConstant.DATE_TIME_GROUP, true,CrestronConstant.DATE_TIME_GROUP, "", CrestronConstant.EMPTY),
 	TIMEZONE("TimeZone",CrestronConstant.DATE_TIME_GROUP, false,CrestronConstant.DATE_TIME_GROUP, "TimeZone", CrestronConstant.EMPTY),
@@ -118,7 +118,7 @@ public enum CrestronPropertyList {
 	SUB_TRANSPORT("Transport",CrestronConstant.STREAM_SUBSCRIPTION_GROUP, false,CrestronConstant.STREAM_SUBSCRIPTION_GROUP, "Transport", CrestronConstant.RECEIVER),
 	SUB_RESOLUTION("Resolution",CrestronConstant.STREAM_SUBSCRIPTION_GROUP, false,CrestronConstant.STREAM_SUBSCRIPTION_GROUP, "Resolution", CrestronConstant.RECEIVER),
 	SUB_AUDIO_FORMAT("AudioFormat",CrestronConstant.STREAM_SUBSCRIPTION_GROUP, false,CrestronConstant.STREAM_SUBSCRIPTION_GROUP, "AudioFormat", CrestronConstant.RECEIVER),
-	SUB_BITRATE("Bitrate",CrestronConstant.STREAM_SUBSCRIPTION_GROUP, false,CrestronConstant.STREAM_SUBSCRIPTION_GROUP, "Bitrate", CrestronConstant.RECEIVER),
+	SUB_BITRATE("Bitrate(Mbps)",CrestronConstant.STREAM_SUBSCRIPTION_GROUP, false,CrestronConstant.STREAM_SUBSCRIPTION_GROUP, "Bitrate", CrestronConstant.RECEIVER),
 	UNSUBSCRIBE("unsubscribe",CrestronConstant.STREAM_SUBSCRIPTION_GROUP, true,CrestronConstant.STREAM_SUBSCRIPTION_GROUP, "", CrestronConstant.RECEIVER),
 
 	AVAILABLE_UNIQUE_ID("UniqueId",CrestronConstant.STREAM_AVAILABLE_GROUP,false,CrestronConstant.STREAM_AVAILABLE_GROUP, "UniqueId", CrestronConstant.RECEIVER),
@@ -129,7 +129,7 @@ public enum CrestronPropertyList {
 	AVAILABLE_TRANSPORT("Transport",CrestronConstant.STREAM_AVAILABLE_GROUP,false,CrestronConstant.STREAM_AVAILABLE_GROUP, "Transport", CrestronConstant.RECEIVER),
 	AVAILABLE_RESOLUTION("Resolution",CrestronConstant.STREAM_AVAILABLE_GROUP,false,CrestronConstant.STREAM_AVAILABLE_GROUP, "Resolution", CrestronConstant.RECEIVER),
 	AVAILABLE_AUDIO_FORMAT("AudioFormat",CrestronConstant.STREAM_AVAILABLE_GROUP,false,CrestronConstant.STREAM_AVAILABLE_GROUP, "AudioFormat", CrestronConstant.RECEIVER),
-	AVAILABLE_BITRATE("Bitrate",CrestronConstant.STREAM_AVAILABLE_GROUP,false,CrestronConstant.STREAM_AVAILABLE_GROUP, "Bitrate", CrestronConstant.RECEIVER),
+	AVAILABLE_BITRATE("Bitrate(Mbps)",CrestronConstant.STREAM_AVAILABLE_GROUP,false,CrestronConstant.STREAM_AVAILABLE_GROUP, "Bitrate", CrestronConstant.RECEIVER),
 	SUBSCRIBE("subscribe",CrestronConstant.STREAM_AVAILABLE_GROUP, true,CrestronConstant.STREAM_AVAILABLE_GROUP, "", CrestronConstant.RECEIVER),
 
 	AUTOMATIC_INPUT_ROUTING("AutomaticInputRouting",CrestronConstant.INPUT_ROUTING_GROUP, true,CrestronConstant.INPUT_ROUTING_GROUP, "AutoInputRoutingEnabled", CrestronConstant.EMPTY),
