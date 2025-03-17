@@ -4,12 +4,6 @@
 
 package com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx;
 
-
-import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.ACTIVE_AUDIO_SOURCE;
-import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.AUDIO_SOURCE;
-import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.RECEIVE_DEVICE_NAME;
-import static com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.CrestronPropertyList.TRANSMIT_DEVICE_NAME;
-
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
@@ -34,6 +28,9 @@ import java.util.stream.IntStream;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,12 +39,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import javax.security.auth.login.FailedLoginException;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 
 import com.avispl.symphony.api.dal.control.Controller;
 import com.avispl.symphony.api.dal.dto.control.AdvancedControllableProperty;
@@ -75,6 +66,7 @@ import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.common.Time
 import com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx.dto.Streams;
 import com.avispl.symphony.dal.communicator.RestCommunicator;
 import com.avispl.symphony.dal.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * CrestronNVXCommunicator
@@ -237,6 +229,43 @@ import com.avispl.symphony.dal.util.StringUtils;
  * @since 1.0.0
  */
 public class CrestronNVXCommunicator extends RestCommunicator implements Monitorable, Controller {
+	/**
+	 * API header interceptor instance
+	 * @since 1.1.1
+	 * */
+	private ClientHttpRequestInterceptor nvxInterceptor = new CrestronNVXInterceptor();
+
+	/**
+	 * HttpRequest interceptor to intercept cookie header and further use it for authentication
+	 *
+	 * @author Maksym.Rossiitsev/Symphony Team
+	 * @since 1.1.1
+	 * */
+	class CrestronNVXInterceptor implements ClientHttpRequestInterceptor {
+		@Override
+		public ClientHttpResponse intercept(org.springframework.http.HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+
+			ClientHttpResponse response = execution.execute(request, body);
+
+			if (request.getURI().getPath().contains(CrestronUri.LOGIN_API)) {
+				StringBuilder sb = new StringBuilder();
+				HttpHeaders headers = response.getHeaders();
+				List<String> authCookies = headers.get(CrestronConstant.SET_COOKIE);
+				if (authCookies == null) {
+					throw new IllegalStateException("Unable to retrieve authorization cookie: empty " + CrestronConstant.SET_COOKIE);
+				}
+				authCookies.forEach(item -> sb.append(removeAttributes(item)));
+				String authCookie = sb.toString();
+				if (StringUtils.isNotNullOrEmpty(authCookie)) {
+					authenticationCookie = authCookie;
+				} else {
+					authenticationCookie = CrestronConstant.EMPTY;
+					throw new ResourceNotReachableException("An error occurred during device login request.");
+				}
+			}
+			return response;
+		}
+	}
 
 	/**
 	 * A mapper for reading and writing JSON using Jackson library.
@@ -366,14 +395,6 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 */
 	public CrestronNVXCommunicator() throws IOException {
 		this.setTrustAllCertificates(true);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void authenticate() throws Exception {
-
 	}
 
 	/**
@@ -602,6 +623,18 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		super.internalDestroy();
 	}
 
+
+	@Override
+	protected RestTemplate obtainRestTemplate() throws Exception {
+		RestTemplate restTemplate = super.obtainRestTemplate();
+		List<ClientHttpRequestInterceptor> restTemplateInterceptors = restTemplate.getInterceptors();
+
+		if (!restTemplateInterceptors.contains(nvxInterceptor))
+			restTemplateInterceptors.add(nvxInterceptor);
+
+		return restTemplate;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -687,7 +720,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				case VIDEO_SOURCE:
 				case ACTIVE_AUDIO_SOURCE:
 				case ACTIVE_VIDEO_SOURCE:
-					if (property == AUDIO_SOURCE || property == ACTIVE_AUDIO_SOURCE) {
+					if (property == CrestronPropertyList.AUDIO_SOURCE || property == CrestronPropertyList.ACTIVE_AUDIO_SOURCE) {
 						AudioSource source = AudioSource.getEnumByValue(propertyValue);
 						propertyValue = source != null ? source.getName() : propertyValue;
 					}
@@ -840,7 +873,7 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 				case TRANSMIT_RECEIVE_HORIZONTAL_RESOLUTION:
 				case TRANSMIT_RECEIVE_VERTICAL_RESOLUTION:
 					if (this.currentStream == null) break;
-					if (property == TRANSMIT_DEVICE_NAME || property == RECEIVE_DEVICE_NAME) {
+					if (property == CrestronPropertyList.TRANSMIT_DEVICE_NAME || property == CrestronPropertyList.RECEIVE_DEVICE_NAME) {
 						stats.put(propertyName, propertyValue);
 					} else {
 						stats.put(propertyName, getDefaultValueForNullData(currentStream.get(property.getApiPropertyName())));
@@ -1298,31 +1331,17 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 		return value == null || StringUtils.isNullOrEmpty(value.asText()) ? CrestronConstant.NONE : value.asText();
 	}
 
+
 	/**
-	 * Login to Crestron DM NVX device
+	 * {@inheritDoc}
 	 */
-	private boolean getCookieSession() {
-		try {
-			HttpClient client = this.obtainHttpClient(true);
-			HttpPost httpPost = new HttpPost(buildDeviceFullPath(CrestronUri.LOGIN_API));
-			httpPost.setEntity(new StringEntity(String.format(CrestronConstant.AUTHENTICATION_PARAM, this.getLogin(), this.getPassword())));
+	@Override
+	protected void authenticate() throws Exception {
+		Map<String, String> request = new HashMap<>();
+		request.put("login", getLogin());
+		request.put("passwd", getPassword());
 
-			HttpResponse response = client.execute(httpPost);
-			StringBuilder sb = new StringBuilder();
-			Header[] headers = response.getHeaders(CrestronConstant.SET_COOKIE);
-
-			if (response.getStatusLine().getStatusCode() == 403){
-				this.authenticationCookie = EntityUtils.toString(response.getEntity());
-				return false;
-			}
-			Arrays.stream(headers).forEach(item -> sb.append(removeAttributes(item.getValue())));
-
-			this.authenticationCookie = sb.toString();
-		} catch (Exception e) {
-			this.authenticationCookie = CrestronConstant.EMPTY;
-			throw new ResourceNotReachableException("An error occurred when attempting to send a login request to the device", e);
-		}
-		return true;
+		doPost(buildDeviceFullPath(CrestronUri.LOGIN_API), request);
 	}
 
 	/**
@@ -1365,7 +1384,8 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	private boolean isValidCookie() throws Exception {
 		boolean isAuthenticate = false;
 		try {
-			isAuthenticate = getCookieSession();
+			authenticate();
+			isAuthenticate = StringUtils.isNotNullOrEmpty(authenticationCookie);
 			if (isAuthenticate) {
 				retrieveDeviceMode();
 			}
