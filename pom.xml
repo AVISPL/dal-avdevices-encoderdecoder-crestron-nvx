@@ -6,7 +6,7 @@
 
   <groupId>com.avispl.symphony.dal.avdevices.encoderdecoder.crestron.nvx</groupId>
   <artifactId>symphony-dal-avdevices-encoderdecoder-crestron-nvx</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
