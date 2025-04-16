@@ -1337,11 +1337,10 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 	 */
 	@Override
 	protected void authenticate() throws Exception {
-		Map<String, String> request = new HashMap<>();
-		request.put("login", getLogin());
-		request.put("passwd", getPassword());
+		StringBuilder sb = new StringBuilder();
+		sb.append("login=").append(getLogin()).append("&&passwd=").append(getPassword());
 
-		doPost(buildDeviceFullPath(CrestronUri.LOGIN_API), request);
+		doPost(buildDeviceFullPath(CrestronUri.LOGIN_API), sb.toString());
 	}
 
 	/**
