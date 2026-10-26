@@ -250,8 +250,14 @@ public class CrestronNVXCommunicator extends RestCommunicator implements Monitor
 			if (request.getURI().getPath().contains(CrestronUri.LOGIN_API)) {
 				StringBuilder sb = new StringBuilder();
 				HttpHeaders headers = response.getHeaders();
-				List<String> authCookies = headers.get(CrestronConstant.SET_COOKIE);
-				if (authCookies == null) {
+				// headerSet() instead of get(): HttpHeaders.get has different signatures in Spring 6 and 7
+				List<String> authCookies = new ArrayList<>();
+				headers.headerSet().forEach(header -> {
+					if (header.getKey().equalsIgnoreCase(CrestronConstant.SET_COOKIE)) {
+						authCookies.addAll(header.getValue());
+					}
+				});
+				if (authCookies.isEmpty()) {
 					throw new IllegalStateException("Unable to retrieve authorization cookie: empty " + CrestronConstant.SET_COOKIE);
 				}
 				authCookies.forEach(item -> sb.append(removeAttributes(item)));
